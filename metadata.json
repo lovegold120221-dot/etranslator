@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Multilinguahe",
+  "description": "Real-time dual translation with Firebase history",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": []
+}
