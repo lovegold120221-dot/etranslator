@@ -45,7 +45,16 @@ CRITICAL TRANSLATION RULES:
 ROUTING LOGIC
 The conversation has two sides:
 - PERSON 1 (STAFF): Fixed Language: ${lang1}.
-- PERSON 2 (GUEST): ${autoDetect ? 'Current Guest Language (Auto-detected based on conversation history)' : `Fixed Language: ${lang2}`}.
+- PERSON 2 (GUEST): ${autoDetect ? 'Current Guest Language (TO BE DETECTED)' : `Fixed Language: ${lang2}`}.
+
+${autoDetect ? `
+LANGUAGE DETECTION PROTOCOL:
+You are in AUTO-DETECTION mode for the Guest Language.
+1. Listen to the first few interactions from PERSON 2.
+2. Once you have identified their language with high confidence, IMMEDIATELY call the 'setGuestLanguage' tool with the language name.
+3. While detecting, do your best to translate based on the suspected language.
+4. Once 'setGuestLanguage' is called, the system will update, and you should continue translating between ${lang1} and that language.
+` : ''}
 
 - IF Input is from PERSON 1 (in ${lang1}): You MUST Translate to the GUEST LANGUAGE. 
 - IF Input is from PERSON 2 (NOT in ${lang1}): You MUST Translate to ${lang1}.
@@ -67,6 +76,7 @@ export const useSettings = create<{
   language2: string;
   topic: string;
   autoDetect: boolean;
+  isDetecting: boolean;
   customLanguages: { name: string; value: string }[];
   setSystemPrompt: (prompt: string) => void;
   setModel: (model: string) => void;
@@ -75,6 +85,7 @@ export const useSettings = create<{
   setLanguage2: (language: string) => void;
   setTopic: (topic: string) => void;
   setAutoDetect: (autoDetect: boolean) => void;
+  setIsDetecting: (isDetecting: boolean) => void;
   addCustomLanguage: (lang: string) => void;
   getVoice: () => string;
 }>((set, get) => ({
@@ -85,10 +96,12 @@ export const useSettings = create<{
   language2: 'English (US)',
   topic: '',
   autoDetect: true,
+  isDetecting: true,
   customLanguages: [],
   setSystemPrompt: prompt => set({ systemPrompt: prompt }),
   setModel: model => set({ model }),
   setVoice: voice => set({ voice }),
+  setIsDetecting: isDetecting => set({ isDetecting }),
   getVoice: () => {
     const state = get();
     if (state.language1.includes('Dutch') || state.language1.includes('Flemish') || 
@@ -108,6 +121,7 @@ export const useSettings = create<{
     get().addCustomLanguage(language);
     set({
       language2: language,
+      isDetecting: false,
       systemPrompt: generateSystemPrompt(get().language1, language, get().topic, get().autoDetect)
     });
   },
@@ -117,6 +131,7 @@ export const useSettings = create<{
   }),
   setAutoDetect: autoDetect => set({
     autoDetect: autoDetect,
+    isDetecting: autoDetect, // Start detecting if enabled
     systemPrompt: generateSystemPrompt(get().language1, get().language2, get().topic, autoDetect)
   }),
   addCustomLanguage: (lang: string) => {

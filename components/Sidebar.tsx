@@ -7,16 +7,17 @@ import c from 'classnames';
 import { useLiveAPIContext } from '../contexts/LiveAPIContext';
 import { useAuth, clearUserConversations } from '../lib/auth';
 import { useEffect, useState, useMemo } from 'react';
-import { Trash2, X, Clock, Languages, MessageSquare, ShieldCheck, ChevronRight, User, Settings as SettingsIcon, LogOut, ExternalLink, Mail, Shield } from 'lucide-react';
+import { Trash2, X, Clock, Languages, MessageSquare, ShieldCheck, ChevronRight, User, Settings as SettingsIcon, LogOut, ExternalLink, Mail, Shield, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { AVAILABLE_LANGUAGES } from '../lib/constants';
 
 type TabType = 'history' | 'profile';
 
 export default function Sidebar() {
   const { isSidebarOpen, toggleSidebar } = useUI();
   const {
-    systemPrompt, language1, language2, topic, autoDetect,
-    setSystemPrompt, setTopic, setAutoDetect
+    systemPrompt, language1, language2, topic, autoDetect, isDetecting,
+    setSystemPrompt, setTopic, setAutoDetect, setLanguage1, setLanguage2
   } = useSettings();
   const { connected } = useLiveAPIContext();
   const { user, signOut, isSuperAdmin } = useAuth();
@@ -229,22 +230,77 @@ export default function Sidebar() {
                       </p>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <h4 className="text-[11px] font-semibold text-[#80868b] uppercase tracking-wider px-2">Language Pairs</h4>
-                      <div className="flex flex-col gap-2">
-                        <div className="px-4 py-3 bg-transparent border border-[#1f1f22] rounded-xl flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] text-[#80868b] uppercase tracking-wider mb-0.5">Staff Language</p>
-                            <p className="text-[14px] text-[#e4e4e7]">{language1}</p>
+                      <div className="flex flex-col gap-3">
+                        {/* Staff Language */}
+                        <div className="space-y-1.5 px-2">
+                          <p className="text-[10px] text-[#80868b] uppercase tracking-wider">Staff Language</p>
+                          <div className="relative">
+                            <select 
+                              value={language1}
+                              onChange={(e) => setLanguage1(e.target.value)}
+                              className="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-[14px] text-[#e4e4e7] appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                            >
+                              {AVAILABLE_LANGUAGES.filter(l => l.value !== 'auto').map(lang => (
+                                <option key={lang.value} value={lang.value}>{lang.name}</option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b] pointer-events-none" />
                           </div>
-                          <Languages className="w-5 h-5 text-[#80868b]" />
                         </div>
-                        <div className="px-4 py-3 bg-transparent border border-[#1f1f22] rounded-xl flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] text-[#80868b] uppercase tracking-wider mb-0.5">Guest Language</p>
-                            <p className="text-[14px] text-[#e4e4e7]">{autoDetect ? 'Auto-Detecting...' : language2}</p>
+
+                        {/* Guest Language */}
+                        <div className="space-y-1.5 px-2">
+                          <p className="text-[10px] text-[#80868b] uppercase tracking-wider">Guest Language</p>
+                          <div className="relative">
+                            <select 
+                              value={autoDetect ? 'auto' : language2}
+                              onChange={(e) => {
+                                if (e.target.value === 'auto') {
+                                  setAutoDetect(true);
+                                } else {
+                                  setAutoDetect(false);
+                                  setLanguage2(e.target.value);
+                                }
+                              }}
+                              className="w-full bg-[#121214] border border-[#1f1f22] rounded-xl px-4 py-3 text-[14px] text-[#e4e4e7] appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                            >
+                              {AVAILABLE_LANGUAGES.map(lang => (
+                                <option key={lang.value} value={lang.value}>{lang.name}</option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b] pointer-events-none" />
                           </div>
-                          <ShieldCheck className="w-5 h-5 text-[#80868b]" />
+                          
+                          {autoDetect && (
+                            <div className="px-2 py-1 flex items-center justify-between">
+                              <p className="text-[14px] text-[#e4e4e7]">
+                                {isDetecting ? (
+                                  <span className="flex items-center gap-2 text-blue-400 text-xs font-medium">
+                                    <span className="relative flex h-1.5 w-1.5">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                                    </span>
+                                    Detecting guest language...
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    Detected: {language2}
+                                  </span>
+                                )}
+                              </p>
+                              {isDetecting && (
+                                <button 
+                                  onClick={() => setAutoDetect(true)} // Re-trigger detection
+                                  className="text-[10px] text-blue-500 hover:underline uppercase tracking-tighter font-bold"
+                                >
+                                  Restart
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
