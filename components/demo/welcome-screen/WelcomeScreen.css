@@ -44,6 +44,7 @@
 
 .turn-text-wrapper {
   padding: 12px 0;
+  position: relative;
 }
 
 .turn-text {
@@ -55,6 +56,33 @@
   letter-spacing: -0.02em;
   word-wrap: break-word;
   white-space: pre-wrap;
+  transition: color 0.3s ease;
+}
+
+.original-text {
+  color: var(--text);
+}
+
+.original-text.with-translation {
+  font-size: 1.5rem;
+  color: #80868b;
+  font-weight: 400;
+}
+
+.translation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.translation-text {
+  font-size: 3rem;
+  color: var(--text);
+}
+
+.translation-text.text-blue-200 {
+  color: #bfdbfe;
 }
 
 .interim {

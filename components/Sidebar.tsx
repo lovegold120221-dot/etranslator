@@ -6,7 +6,7 @@ import { useSettings, useUI } from '../lib/state';
 import c from 'classnames';
 import { useLiveAPIContext } from '../contexts/LiveAPIContext';
 import { useAuth, clearUserConversations } from '../lib/auth';
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Trash2, X, Clock, Languages, MessageSquare, ShieldCheck, ChevronRight, User, Settings as SettingsIcon, LogOut, ExternalLink, Mail, Shield, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AVAILABLE_LANGUAGES } from '../lib/constants';
