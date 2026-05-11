@@ -24,6 +24,20 @@ export default function Sidebar() {
   
   const [activeTab, setActiveTab] = useState<TabType>('history');
   const [history, setHistory] = useState<any[]>([]);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -174,29 +188,49 @@ export default function Sidebar() {
                               <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#1f1f22]" />
                             </div>
                             <div className="space-y-2">
-                              {[...session].reverse().map((item) => (
+                              {[...session].reverse().map((item) => {
+                                const isExpanded = expandedItems.has(item.id);
+                                return (
                                 <div 
                                   key={item.id} 
-                                  className="group p-4 bg-transparent border border-[#1f1f22] rounded-xl hover:border-[#3c4043] transition-colors relative"
+                                  onClick={(e) => toggleExpand(item.id, e)}
+                                  className="group p-4 bg-transparent border border-[#1f1f22] rounded-xl hover:border-[#3c4043] transition-colors relative cursor-pointer"
                                 >
                                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-[#3c4043] rounded-l-xl transition-colors" />
                                   <div className="flex flex-col gap-2">
                                     <div className="flex items-start justify-between gap-3">
-                                      <p className="text-[14px] text-[#e4e4e7] leading-relaxed">
+                                      <p className={c(
+                                        "text-[14px] text-[#e4e4e7] leading-relaxed transition-all",
+                                        !isExpanded ? "line-clamp-1" : ""
+                                      )}>
                                         {item.text}
                                       </p>
-                                      <span className="text-[10px] text-[#5f6368] font-mono mt-0.5 shrink-0">
-                                        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                      </span>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-[10px] text-[#5f6368] font-mono mt-0.5">
+                                          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                        <ChevronDown className={c("w-3 h-3 text-[#5f6368] transition-transform", isExpanded && "rotate-180")} />
+                                      </div>
                                     </div>
-                                    {item.translation && (
-                                      <p className="text-[14px] text-[#98beff] font-medium leading-relaxed">
-                                        {item.translation}
-                                      </p>
-                                    )}
+                                    <AnimatePresence>
+                                      {isExpanded && item.translation && (
+                                        <motion.div
+                                          initial={{ opacity: 0, height: 0 }}
+                                          animate={{ opacity: 1, height: 'auto' }}
+                                          exit={{ opacity: 0, height: 0 }}
+                                          className="overflow-hidden"
+                                        >
+                                          <div className="pt-2 mt-1 border-t border-[#1f1f22]">
+                                            <p className="text-[14px] text-[#98beff] font-medium leading-relaxed">
+                                              {item.translation}
+                                            </p>
+                                          </div>
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
                                   </div>
                                 </div>
-                              ))}
+                              )})}
                             </div>
                           </div>
                         )})
